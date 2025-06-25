@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小間バーコード読み取り</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; text-align: center; }
+    #reader { width: 300px; margin: auto; }
+    input[type="text"] { font-size: 18px; width: 80%; padding: 10px; margin: 20px 0; }
+    button { font-size: 18px; padding: 10px 20px; }
+  </style>
+</head>
+<body>
+
+  <h1>バーコードを読み取ってください</h1>
+  <div id="reader"></div>
+
+  <input type="text" id="barcodeInput" placeholder="バーコードの値がここに表示されます" readonly />
+  <br>
+  <button id="nextBtn" disabled onclick="location.href='next.html'">次へ</button>
+
+  <script>
+    function onScanSuccess(decodedText, decodedResult) {
+      document.getElementById("barcodeInput").value = decodedText;
+      document.getElementById("nextBtn").disabled = false;
+      html5QrcodeScanner.clear(); // 一度読み込んだら停止
+    }
+
+    const html5QrcodeScanner = new Html5QrcodeScanner(
+      "reader", { fps: 10, qrbox: 250 });
+    html5QrcodeScanner.render(onScanSuccess);
+  </script>
+
+</body>
+</html>
