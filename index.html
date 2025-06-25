@@ -3,34 +3,50 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>小間バーコード読み取り</title>
+  <title>バーコードスキャン</title>
   <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
-    body { font-family: sans-serif; padding: 20px; text-align: center; }
+    body { font-family: sans-serif; text-align: center; padding: 20px; }
     #reader { width: 300px; margin: auto; }
-    input[type="text"] { font-size: 18px; width: 80%; padding: 10px; margin: 20px 0; }
-    button { font-size: 18px; padding: 10px 20px; }
+    input[type="text"] { font-size: 18px; width: 80%; padding: 10px; margin-top: 20px; }
   </style>
 </head>
 <body>
 
-  <h1>バーコードを読み取ってください</h1>
+  <h1>バーコードを読み取っています...</h1>
   <div id="reader"></div>
-
-  <input type="text" id="barcodeInput" placeholder="バーコードの値がここに表示されます" readonly />
-  <br>
-  <button id="nextBtn" disabled onclick="location.href='next.html'">次へ</button>
+  <input type="text" id="barcodeInput" placeholder="読み取り結果" readonly />
 
   <script>
-    function onScanSuccess(decodedText, decodedResult) {
-      document.getElementById("barcodeInput").value = decodedText;
-      document.getElementById("nextBtn").disabled = false;
-      html5QrcodeScanner.clear(); // 一度読み込んだら停止
-    }
+    const html5QrCode = new Html5Qrcode("reader");
 
-    const html5QrcodeScanner = new Html5QrcodeScanner(
-      "reader", { fps: 10, qrbox: 250 });
-    html5QrcodeScanner.render(onScanSuccess);
+    Html5Qrcode.getCameras().then(devices => {
+      if (devices && devices.length) {
+        const backCamera = devices.find(device => device.label.toLowerCase().includes("back")) || devices[0];
+
+        html5QrCode.start(
+          backCamera.id,
+          {
+            fps: 10,
+            qrbox: 250
+          },
+          decodedText => {
+            document.getElementById("barcodeInput").value = decodedText;
+
+            // カメラ停止して、次のページへ遷移
+            html5QrCode.stop().then(() => {
+              window.location.href = "next.html?code=" + encodeURIComponent(decodedText);
+            });
+          },
+          errorMessage => {
+            // 読み取り失敗（ログのみ）
+            console.warn(errorMessage);
+          }
+        );
+      }
+    }).catch(err => {
+      console.error("カメラの取得に失敗しました:", err);
+    });
   </script>
 
 </body>
